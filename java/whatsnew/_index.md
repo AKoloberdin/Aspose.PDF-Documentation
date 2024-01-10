@@ -11,6 +11,207 @@ sitemap:
 lastmod: "2021-06-05"
 ---
 
+## What's new in Aspose.PDF 23.12
+
+From Aspose.PDF 23.12 support to extract and remove text based on subtype/form. It is possible to identify forms that were created using 'Typewriter' tool and remove them. 
+The form can be found and the text can be replaced using the following code snippet:
+
+```java
+
+    Document document = new Document(input);
+        String expectedText = "This is a text added while creating new PDF in Kofx Power PDF Standard.";
+
+        XFormCollection forms = document.getPages().get_Item(1).getResources().getForms();
+
+        Iterator tmp0 = (forms).iterator();
+        while (tmp0.hasNext()) {
+            XForm form = (XForm) tmp0.next();
+            if ("Typewriter".equals(form.getIT()) && "Form".equals(form.getSubtype())) {
+                TextFragmentAbsorber absorber = new TextFragmentAbsorber();
+                absorber.visit(form);
+
+                Iterator tmp1 = (absorber.getTextFragments()).iterator();
+                while (tmp1.hasNext()) {
+                    TextFragment fragment = (TextFragment) tmp1.next();
+                    fragment.setText("");
+                }
+            }
+        }
+
+        document.save(output);
+```
+
+Or, the form can be completely removed:
+
+```java
+
+    Document document = new Document(input);
+
+        XFormCollection forms = document.getPages().get_Item(1).getResources().getForms();
+
+    //foreach to while statements conversion
+    Iterator tmp0 = (forms).iterator();
+    while (tmp0.hasNext()) {
+        XForm form = (XForm) tmp0.next();
+        if ("Typewriter".equals(form.getIT()) && "Form".equals(form.getSubtype())) {
+            String name = forms.getFormName(form);
+            forms.delete(name);
+        }
+    }
+
+    document.save(output);
+```
+
+Another variant of removing the form:
+
+```java
+    Document document = new Document(input);
+
+        XFormCollection forms = document.getPages().get_Item(1).getResources().getForms();
+
+        for (int i = 1; i <= forms.size(); i++) {
+            if ("Typewriter".equals(forms.get_Item(i).getIT()) && "Form".equals(forms.get_Item(i).getSubtype())) {
+                forms.delete(forms.get_Item(i).getName());
+            }
+        }
+
+        document.save(output);
+```
+All forms can be deleted using the following code snippet:
+
+```java
+
+    Document document = new Document(input);
+
+        XFormCollection forms = document.getPages().get_Item(1).getResources().getForms();
+
+    forms.clear();
+
+    document.save(output);
+```
+
+## What's new in Aspose.PDF 23.10
+
+From Aspose.PDF 23.10 support to remove tags from tagged PDF.
+
+- Remove some node element from a documentElement (root tree element):
+
+```java
+
+    Document document = new Document(inputPath);
+    RootElement structure = document.getLogicalStructure();
+    Element documentElement = structure.getChildren().get_Item(0);
+    Element structElement = (documentElement.getChildren().getCount() > 1) ?  documentElement.getChildren().get_Item(1) : null;
+    documentElement.getChildren().remove(structElement);
+    // You can also delete the structElement itself
+                //if (structElement != null)
+                //{
+                //    structElement.remove();
+                //}
+    document.save(outputPath);
+```
+
+- Remove all marked elements tags from the document, but keep the structure elements:
+
+```java
+
+    Document document = new Document(inputPath);
+    RootElement structure = document.getLogicalStructure();
+    Element root= structure.getChildren().get_Item(0);
+    Queue<Element> queue = new ArrayDeque<Element>();
+    queue.add(root);
+    for (Element element : structure.getChildren() ) {
+        queue.add(element);
+        for (Element child : element.getChildren())
+        {
+            queue.add(child);
+        }
+    }
+    for (Element element:queue ) {
+        if (element instanceof TextElement  || element instanceof FigureElement)
+            element.remove();
+    }
+    document.save(outputPath);
+```
+
+- Remove all tags:
+
+```java
+
+    Document document = new Document(inputPath);
+    RootElement structure = document.getLogicalStructure();
+    Element root = structure.getChildren().get_Item(0);
+    root.remove();
+    document.save(outputPath);
+```
+## What's new in Aspose.PDF 23.8
+
+From Aspose.PDF 23.8 support to add the shape extraction:
+
+```java
+    {
+        String input1 = getInputPdf("46298_1");
+        String input2 = getInputPdf("46298_2");
+
+        Document source = new Document(input1);
+        Document dest = new Document(input2);
+
+        Page destPage = dest.getPages().get_Item(1);
+
+        TextFragmentAbsorber tfAbsorber = new TextFragmentAbsorber();
+        tfAbsorber.visit(source.getPages().get_Item(1));
+
+        //foreach to while statements conversion
+        Iterator tmp0 = ( tfAbsorber.getTextFragments()).iterator();
+            while (tmp0.hasNext())
+            {
+                TextFragment textFragment = (TextFragment)tmp0.next();
+                System.out.println(textFragment.getText());
+                addTextImproved(destPage, textFragment);
+            }
+
+        ImagePlacementAbsorber imageAbsorber = new ImagePlacementAbsorber();
+        imageAbsorber.visit(source);
+
+        Iterator tmp1 = ( imageAbsorber.getImagePlacements()).iterator();
+            while (tmp1.hasNext())
+            {
+                ImagePlacement image = (ImagePlacement)tmp1.next();
+                destPage.addImage(image.getImage().toStream(), image.getRectangle());
+            }
+
+        GraphicsAbsorber vectorAbsorber = new GraphicsAbsorber();
+        vectorAbsorber.visit(source.getPages().get_Item(1));
+        Rectangle area = new Rectangle(90, 250, 300, 400);
+        dest.getPages().get_Item(1).addGraphics(vectorAbsorber.getElements(), area);
+        dest.save(getOutputPath("46298-out.pdf"));
+    }
+```
+
+```java
+    private static void addTextImproved(Page page, TextFragment textFragment)
+    {
+        TextFragment local = new TextFragment();
+        local.setPosition(textFragment.getPosition());
+
+        // Recalculate a new position since page size differs the originl PDF
+        local.getPosition().setXIndent(textFragment.getPosition().getXIndent());//2.5 * 72;
+        double newPageHeight = page.getPageRect(true).getHeight();
+        double oldPageHeight = textFragment.getPage().getPageRect(true).getHeight();
+        local.getPosition().setYIndent(textFragment.getPosition().getYIndent());
+
+        local.setText(textFragment.getText());
+        local.getTextState().setFont(textFragment.getTextState().getFont());
+        local.getTextState().setFontSize(textFragment.getTextState().getFontSize());
+
+        local.getTextState().setFormattingOptions(textFragment.getTextState().getFormattingOptions());
+        local.getTextState().setForegroundColor(textFragment.getTextState().getForegroundColor());
+
+        TextBuilder textBuilder = new TextBuilder(page);
+        textBuilder.appendText(local);
+    }
+```
+
 ## What's new in Aspose.PDF 23.6
 
 From 23.6 version support the add the ability to set the title of the HTML, Epub page.

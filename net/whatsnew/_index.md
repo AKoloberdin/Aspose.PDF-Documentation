@@ -11,6 +11,61 @@ sitemap:
 lastmod: "2021-12-24"
 ---
 
+## What's new in Aspose.PDF 23.12
+
+From Aspose.PDF 23.12 support to add the next plugins:
+
+- Add 'ChatGPT' plugin
+- Add 'Merger' plugin
+
+Also, adding the next new features:
+
+- Implement PDF to Markdown conversion
+
+```cs
+
+    string markdownOutputFilePath = "output.md"
+    string inputPdfPath = "input.pdf"
+    using (Document doc = new Document(inputPdfPath))
+    {
+    MarkdownSaveOptions saveOptions = new MarkdownSaveOptions();
+    saveOptions.ResourcesDirectoryName = "images"; 
+    doc.Save(markdownOutputFilePath, saveOptions);
+    }
+```
+
+- Implement OFD to PDF conversion
+
+```cs
+
+    var document = new Document("input.ofd", new OfdLoadOptions());
+    document.Save("output.pdf");
+```
+## What's new in Aspose.PDF 23.11
+
+From 23.11 possible to remove the hidden text, the following code snippet can be used:
+
+```cs
+
+    var document = new Document(inputFile);
+    var textAbsorber = new TextFragmentAbsorber();
+
+    // This option can be used to prevent other text fragments from moving after hidden text replacement.
+    textAbsorber.TextReplaceOptions = new TextReplaceOptions(TextReplaceOptions.ReplaceAdjustment.None);
+
+    document.Pages.Accept(textAbsorber);
+
+    foreach (var fragment in textAbsorber.TextFragments)
+    {
+        if (fragment.TextState.Invisible)
+        {
+            fragment.Text = "";
+        }
+    }
+
+    document.Save(outputFile);
+```    
+
 ## What's new in Aspose.PDF 23.8
 
 From 23.8 support to add Incremental Updates detection.
